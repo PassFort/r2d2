@@ -53,6 +53,7 @@ use std::ops::{Deref, DerefMut};
 use std::sync::atomic::{AtomicUsize, Ordering, ATOMIC_USIZE_INIT};
 use std::sync::{Arc, Weak};
 use std::time::{Duration, Instant};
+use std::thread;
 
 pub use config::Builder;
 use config::Config;
@@ -493,7 +494,8 @@ where
         self.0.config.event_handler.handle_checkin(event);
 
         // This is specified to be fast, but call it before locking anyways
-        let broken = self.0.manager.has_broken(&mut conn.conn);
+        let broken = self.0.manager.has_broken(&mut conn.conn)
+            || thread::panicking();
 
         let mut internals = self.0.internals.lock();
         if broken {
